@@ -4,24 +4,20 @@
 # Affiliation:  Pacific Biological Station, Fisheries and Oceans Canada (DFO) 
 # Group:        Offshore Assessment, Aquatic Resources, Research, and Assessment
 # Address:      3190 Hammond Bay Road, Nanaimo, BC, Canada, V9T 6N7
-# Contact:      e-mail: Matthew.Grinnell@dfo-mpo.gc.ca | tel: (250) 756.7055
+# Contact:      e-mail: Matthew.Grinnell@dfo-mpo.gc.ca | tel: (250) 756.7198
 # Project:      Herring
-# Code name:    SpatialAnalysis.R
+# Code name:    Analysis.R
 # Version:      1.0
-# Date started: Mar 21, 2017
-# Date edited:  Jun 02, 2017
+# Date started: Feb 3, 2020
+# Date edited:  Feb 3, 2020
 # 
 # Overview: 
-# Plot some spawn and catch data on a smaller spatial scale (i.e., statistical
-# area, section, location code) as a proxy for having management and stock
-# assessment on a smaller spatial scale, which is not possible with the current
-# framework.
+# Plot catch, biosample, and spawn data on a finer spatial scale (i.e.,
+# statistical area, section, location code, or group).
 # 
 # Requirements: 
-# The saved image from 'Summary.R', as well as raw spawn data in the same
-# directory (which is currently written there by 'SpawnIndex.R'). The external
-# program ImageMagick (https://www.imagemagick.org/script/index.php) is also 
-# required to make the *.gif.
+# The saved image from 'Summary.R', and the saved image from the stock
+# assessment report 'herringsr'.
 # 
 # Notes: 
 # Averages and other statistics are for the locations that have values. For
@@ -1376,7 +1372,7 @@ outCatchHarvSI <- allYrSp %>%
 ##### End #####
 
 # Print end of file message and elapsed time
-cat( "End of file SpatialAnalysis.R: ", sep="" )
+cat( "End of file Analysis.R: ", sep="" )
 print( Sys.time( ) - sTime2 )
 
 ## Spawn index data for Beau

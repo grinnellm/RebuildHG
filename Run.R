@@ -4,18 +4,15 @@
 # Affiliation:  Pacific Biological Station, Fisheries and Oceans Canada (DFO) 
 # Group:        Quantitative Assessment Methods Section
 # Address:      3190 Hammond Bay Road, Nanaimo, BC, Canada, V9T 6N7
-# Contact:      e-mail: Matthew.Grinnell@dfo-mpo.gc.ca | tel: (250) 756.7055
+# Contact:      e-mail: Matthew.Grinnell@dfo-mpo.gc.ca | tel: (250) 756.7198
 # Project:      Herring
 # Code name:    Run.R
 # Version:      1.0
-# Date started: Mar 9, 2018
-# Date edited:  Mar 8, 2019
+# Date started: Feb 3, 2020
+# Date edited:  Feb 3, 2020
 # 
 # Overview: 
-# Source the 'SpatialAnalysis.R' script for each requested region.
-# 
-# Requirements: 
-# Output from the 'Summary.R' script.
+# Source the 'Analysis.R' script for each requested region.
 # 
 # Notes: 
 # 
@@ -170,7 +167,7 @@ for( reg in 1:length(spRegions) ) {
   # Message re spatial info
   cat( "\nInvestigate", region, "by", spUnitName, "\n" )
   # Run the spatial analysis
-  source( file="SpatialAnalysis.R" )
+  source( file="Analysis.R" )
 }  # End reg loop over region(s)
 
 ##### Tables #####
