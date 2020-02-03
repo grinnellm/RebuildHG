@@ -1,0 +1,11 @@
+Region,Parameter,Lower,Median,Upper,Survey
+HG,q1,0.332,0.404,0.483,Surface
+HG,q2,0.983,0.999,1.016,Dive
+PRD,q1,0.468,0.547,0.624,Surface
+PRD,q2,0.985,1.001,1.018,Dive
+CC,q1,0.28,0.328,0.38,Surface
+CC,q2,0.982,0.999,1.016,Dive
+SoG,q1,0.857,1.019,1.192,Surface
+SoG,q2,0.983,1,1.016,Dive
+WCVI,q1,0.708,0.851,1.007,Surface
+WCVI,q2,0.983,0.999,1.016,Dive
