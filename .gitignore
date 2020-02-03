@@ -1,11 +1,9 @@
 # History files
 .Rhistory
+.Rproj.user/
 
 # Session Data files
 .RData
-
-# RStudio files
-.Rproj.user/
 
 # Output folders
 /HG
@@ -18,4 +16,3 @@
 
 # Output files
 *.png
-
