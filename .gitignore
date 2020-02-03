@@ -3,7 +3,7 @@
 .Rproj.user/
 
 # Session Data files
-.RData
+*.RData
 
 # Output folders
 /HG
