@@ -62,20 +62,8 @@ qFN <- file.path( "Data", "qPars.csv" )
 # # Model: AM1 and/or AM2 (Note: This has not been tested with > 1 model)
 # mNames <- "AM2"
 
-# Generate GIF---this can take a long time---use 64 bit R.
-makeGIF <- FALSE
-
 # Reference years
-refYrsAll <- read_csv( file=
-        "SAR, Start, End
-        HG, 1951, 2018 
-        PRD, 1951, 2018 
-        CC, 1951, 2018 
-        SoG, 1951, 2018 
-        WCVI, 1990, 1999
-        A27, 1951, 2018
-        A2W, 1951, 2018", 
-    col_types=cols("c", "i", "i") )
+refYrsAll <- read_csv( file="RefYrs.csv", col_types=cols("c", "i", "i") )
 
 ##### Parameters #####
 
