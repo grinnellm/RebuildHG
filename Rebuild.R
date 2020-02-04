@@ -412,7 +412,9 @@ year( siAll$End ) <- 0000
 
 # Make it long (for plots)
 siAllLong <- siAll %>%
-  gather( 'Start', 'End', key="Timing", value="Date" )
+  gather( 'Start', 'End', key="Timing", value="Date" ) %>%
+  mutate( Survey=factor(Survey, levels=c("Surface", "Dive")),
+          Timing=factor(Timing, levels=c("Start", "End")) )
 
 # Aggregate spawn index by year and spatial unit
 siYrSp <- siAll %>%
