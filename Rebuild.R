@@ -60,7 +60,7 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 region <- c( "HG" )
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Group"
+spUnitName <- "Region"
 
 ##### Parameters #####
 
@@ -99,6 +99,9 @@ refYrsAll <- refFN <- file.path("Data", "RefYrs.csv")
 source( file=file.path("..", "HerringFunctions", "Functions.R") )
 
 ##### Data #####
+
+# Message
+cat( "Investigate", region, "by", spUnitName, "\n" )
 
 # Load q parameters (from the latest assessment)
 qPars <- read_csv( file=qFN, col_types=cols() ) %>%
@@ -277,10 +280,12 @@ LoadPrivacy <- function( sp, sc, fn ) {
       mutate( Private=TRUE ) %>%
       rename( !!privName:=Private )  # Weird but works..
     # Print a message
-    cat( "Loading", fn, "privacy info for", sc, "by", sp, "\n" )
+    cat( "Loading", fn, "privacy data\n" )
   } else {  # End if there is privacy data, otherwise
     # No data
     privDat <- NULL
+    # Print a message
+    cat( "No", fn, "privacy data found\n")
   }  # End if there is no catch privacy data
   # Return the data
   return( privDat )
@@ -399,7 +404,7 @@ harvYrSp <- harvest %>%
   mutate( HarvSOKShow=ifelse(PrivHarvest, 0, HarvSOK) )
 
 # Add harvest data to catch table
-catchYrSp <- full_join( catchYrSp, harvYrSp, by=c("Year", "SpUnit") )
+chYrSp <- full_join( catchYrSp, harvYrSp, by=c("Year", "SpUnit") )
 
 # Update years (use the same year to compare timing among years)
 year( siAll$Start ) <- 0000
@@ -429,7 +434,7 @@ siYrSp <- siAll %>%
           Survey=factor(Survey, levels=c("Surface", "Dive")) )
 
 # Combine catch with spawn index by year and spatial unit
-allYrSp <- full_join( x=catchYrSp, y=siYrSp, by=c("Year", "SpUnit") ) %>%
+allYrSp <- full_join( x=chYrSp, y=siYrSp, by=c("Year", "SpUnit") ) %>%
   arrange( Year, SpUnit ) %>%
   mutate( Survey=ifelse(Year < newSurvYr, "Surface", "Dive") ) %>%
   replace_na( replace=list(NConsec=-1) ) %>%
