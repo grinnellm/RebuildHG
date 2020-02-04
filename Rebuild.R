@@ -6,10 +6,10 @@
 # Address:      3190 Hammond Bay Road, Nanaimo, BC, Canada, V9T 6N7
 # Contact:      e-mail: Matthew.Grinnell@dfo-mpo.gc.ca | tel: (250) 756.7198
 # Project:      Herring
-# Code name:    Analysis.R
+# Code name:    Rebuild.R
 # Version:      1.0
 # Date started: Feb 3, 2020
-# Date edited:  Feb 3, 2020
+# Date edited:  Feb 4, 2020
 # 
 # Overview: 
 # Plot catch, biosample, and spawn data on a finer spatial scale (i.e.,
@@ -25,7 +25,6 @@
 # all the locations that have spawn reported. That is to say, it excludes
 # locations with no spawn (which have zero layers).
 #
-# References:
 
 ##### Housekeeping #####
 
@@ -385,4 +384,4 @@ siAll <- siAll %>%
 ##### End ##### 
 
 # Print end of file message and elapsed time
-cat( "\nEnd of file Analysis.R: ", sep="" ) ;  print( Sys.time( ) - sTime )
+cat( "\nEnd of file Rebuild.R: ", sep="" ) ;  print( Sys.time( ) - sTime )
