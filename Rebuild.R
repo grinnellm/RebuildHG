@@ -57,10 +57,10 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c( "A2W" )
+region <- c( "HG" )
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Region"
+spUnitName <- "Group"
 
 ##### Parameters #####
 
@@ -80,7 +80,7 @@ intendU <- 0.2
 intendUYrs <- 1983
 
 # Plot quality (dots per inch)
-pDPI <- 600
+pDPI <- 320
 
 ##### Files #####
 
@@ -119,8 +119,6 @@ if( nrow(refYrs) == 0 )
 if( region %in% list.files() ) {
   # Remove the old directory
   unlink( region, recursive=TRUE )
-  # Warning: remove previous summary output
-  warning( "Removed existing directory '", region, "'", call.=FALSE )
   # Create the main directory for output
   dir.create( region )
 } else {  # End if directory exists, otherwise
@@ -294,11 +292,18 @@ privCatchDat <- LoadPrivacy( sp=spUnitName, sc=region, fn="Catch" )
 # Load harvest privacy data (if any)
 privHarvDat <- LoadPrivacy( sp=spUnitName, sc=region, fn="Harvest" )
 
+# Names for privacy data (in join below)
+if( spUnitName=="Region" ) {
+  namesPriv <- "Year"
+} else {
+  namesPriv <- c( "Year", spUnitName )
+}
+
 # Deal with privacy issues for catch data (if any)
 if( !is.null(privCatchDat) ) {
   # Identify which catch values are private (TRUE)
   catch <- catch %>%
-    full_join( y=privCatchDat ) %>%
+    full_join( y=privCatchDat, by=namesPriv ) %>%
     replace_na( replace=list(PrivCatch=FALSE) )
 } else {  # End if privacy issues, otherwise
   # Add a dummy column
@@ -310,7 +315,7 @@ if( !is.null(privCatchDat) ) {
 if( !is.null(privHarvDat) ) {
   # Identify which harvest values are private (TRUE)
   harvest <- harvest %>%
-    full_join( y=privHarvDat ) %>%
+    full_join( y=privHarvDat, by=namesPriv ) %>%
     replace_na( replace=list(PrivHarvest=FALSE) )
 } else {  # End if privacy issues, otherwise
   # Add a dummy column
@@ -376,6 +381,104 @@ siAll <- siAll %>%
   rename_(SpUnit=spUnitName )
 
 ##### Main #####
+
+# Aggregate catch by year and spatial unit
+catchYrSp <- catch %>%
+  group_by( Year, SpUnit ) %>%
+  summarise( Catch=SumNA(Catch), PrivCatch=unique(PrivCatch) ) %>%
+  ungroup( ) %>%
+  arrange( Year, SpUnit ) %>%
+  mutate( CatchShow=ifelse(PrivCatch, 0, Catch) )
+
+# Aggregate harvest by year and spatial unit
+harvYrSp <- harvest %>%
+  group_by( Year, SpUnit ) %>%
+  summarise( HarvSOK=SumNA(HarvSOK), PrivHarvest=unique(PrivHarvest) ) %>%
+  ungroup( ) %>%
+  arrange( Year, SpUnit ) %>%
+  mutate( HarvSOKShow=ifelse(PrivHarvest, 0, HarvSOK) )
+
+# Add harvest data to catch table
+catchYrSp <- full_join( catchYrSp, harvYrSp, by=c("Year", "SpUnit") )
+
+# Update years (use the same year to compare timing among years)
+year( siAll$Start ) <- 0000
+year( siAll$End ) <- 0000
+
+# Aggregate spawn index by year and spatial unit
+siYrSp <- siAll %>%
+  group_by( Year, SpUnit ) %>%
+  summarise( 
+    NumLocs=n_distinct(LocationCode),
+    LengthTotal=SumNA(Length),
+    WidthMean=MeanNA(Width),
+    AreaTotal=SumNA(Area),
+    LayersMean=MeanNA(LyrsMean),
+    SITotal=SumNA(SITotal),
+    DateFirst=MinNA(Start, End),
+    DateLast=MaxNA(Start, End),
+    DateDiff=DateLast-DateFirst,
+    Survey=unique(Survey) ) %>%
+  group_by( SpUnit ) %>%
+  mutate( NConsec=CountConsecutive(Year) ) %>%
+  ungroup( ) %>%
+  arrange( Year, SpUnit ) %>%
+  left_join( y=qPars, by="Survey" ) %>%
+  mutate( BiomassLower=SITotal/qUpper, BiomassMedian=SITotal/qMedian,
+          BiomassUpper=SITotal/qLower, 
+          Survey=factor(Survey, levels=c("Surface", "Dive")) )
+
+# Combine catch with spawn index by year and spatial unit
+allYrSp <- full_join( x=catchYrSp, y=siYrSp, by=c("Year", "SpUnit") ) %>%
+  arrange( Year, SpUnit ) %>%
+  mutate( Survey=ifelse(Year < newSurvYr, "Surface", "Dive") ) %>%
+  replace_na( replace=list(NConsec=-1) ) %>%
+  mutate( Survey=factor(Survey, levels=c("Surface", "Dive")),
+          HarvestLower=Catch/(Catch+BiomassUpper), 
+          HarvestMedian=Catch/(Catch+BiomassMedian),
+          HarvestUpper=Catch/(Catch+BiomassLower) ) %>%
+  filter( !is.na(SpUnit) )
+
+# Determine ratio of max SOK harvest to max spawn index
+rSOK <- max(allYrSp$HarvSOK, na.rm=TRUE) / max(allYrSp$SITotal, na.rm=TRUE)
+
+##### Figures #####
+
+# Spawn index time series
+siPlot <- ggplot( data=allYrSp, 
+                  aes(x=Year, group=Survey) ) +
+  geom_vline( xintercept=newSurvYr-0.5, linetype="dashed", size=0.25 ) +
+  scale_x_continuous( breaks=seq(from=1000, to=3000, by=10) ) +
+  expand_limits( x=yrRange ) +
+  myTheme +
+  facet_grid( SpUnit ~ ., scales="free_y" ) +
+  theme( legend.position="top" )
+
+# Spawn index plot: with catch
+siPlotCatch <- siPlot +
+  geom_line( aes(y=SITotal), na.rm=TRUE ) +
+  geom_point( aes(y=SITotal, shape=Survey), na.rm=TRUE ) +
+  labs( y="Spawn index and catch (t)" ) +
+  scale_y_continuous( labels=comma ) +
+  geom_col( data=filter(allYrSp, !PrivCatch), aes(y=Catch), alpha=0.5 ) +
+  geom_point( data=filter(allYrSp, PrivCatch), aes(y=CatchShow), shape=8 ) +
+  ggsave( filename=file.path(region, "SpawnIndexCatch.png"), 
+          height=min(8.75, n_distinct(allYrSp$SpUnit)*1.9+1), 
+          width=figWidth )
+
+# Spawn index plot with SOK harvest (harvest is in lbs -- need to scale)
+siPlotHarv <- siPlot + 
+  geom_line( aes(y=SITotal), na.rm=TRUE ) +
+  geom_point( aes(y=SITotal, shape=Survey), na.rm=TRUE ) +
+  labs( y="Spawn index (t)" ) +
+  scale_y_continuous( labels=comma,
+                      sec.axis=sec_axis(~.*rSOK, labels=comma,
+                                        name="SOK harvest (t)") ) +
+  geom_col( data=filter(allYrSp, !PrivHarvest), aes(y=HarvSOK/rSOK), alpha=0.5 ) +
+  geom_point( data=filter(allYrSp, PrivHarvest), aes(y=HarvSOKShow), shape=8 ) +
+  ggsave( filename=file.path(region, "SpawnIndexHarv.png"), 
+          height=min(8.75, n_distinct(allYrSp$SpUnit)*1.9+1), 
+          width=figWidth )
 
 ##### Tables #####
 
