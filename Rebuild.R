@@ -60,7 +60,7 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 region <- c( "HG" )
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Region"
+spUnitName <- "Group"
 
 ##### Parameters #####
 
@@ -410,6 +410,10 @@ chYrSp <- full_join( catchYrSp, harvYrSp, by=c("Year", "SpUnit") )
 year( siAll$Start ) <- 0000
 year( siAll$End ) <- 0000
 
+# Make it long (for plots)
+siAllLong <- siAll %>%
+  gather( 'Start', 'End', key="Timing", value="Date" )
+
 # Aggregate spawn index by year and spatial unit
 siYrSp <- siAll %>%
   group_by( Year, SpUnit ) %>%
@@ -484,6 +488,19 @@ siPlotHarv <- siPlot +
   ggsave( filename=file.path(region, "SpawnIndexHarv.png"), 
           height=min(8.75, n_distinct(allYrSp$SpUnit)*1.9+1), 
           width=figWidth )
+
+# Spawn timing by year and spatial unit
+timingPlot <- ggplot( data=filter(siAllLong, !is.na(Survey)), aes(x=Year) ) +
+  geom_point( aes(y=Date, shape=Survey, colour=Timing), alpha=0.5 ) +
+  geom_vline( xintercept=newSurvYr-0.5, linetype="dashed", size=0.25 ) +
+  scale_x_continuous( breaks=seq(from=1000, to=3000, by=10) ) +
+  expand_limits( x=yrRange ) +
+  labs( y="Date" ) +
+  facet_grid( SpUnit ~ . ) +
+  myTheme +
+  theme( legend.position="top" ) +
+  ggsave( filename=file.path(region, "SpawnTiming.png"), 
+          height=min(8.75, n_distinct(siAll$SpUnit)*1.9+1), width=figWidth )
 
 ##### Tables #####
 
