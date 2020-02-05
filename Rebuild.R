@@ -60,7 +60,7 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 region <- c( "HG" )
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Section"
+spUnitName <- "Region"
 
 ##### Parameters #####
 
@@ -103,11 +103,20 @@ source( file=file.path("..", "HerringFunctions", "Functions.R") )
 # Message
 cat( "Investigate", region, "by", spUnitName, "\n" )
 
-# Load q parameters (from the latest assessment)
-qPars <- read_csv( file=qFN, col_types=cols() ) %>%
-  filter( Region == region ) %>%
-  rename( qLower=Lower, qMedian=Median, qUpper=Upper ) %>%
-  select( qLower, qMedian, qUpper, Survey )
+# Load saved data from the stock assessment model
+LoadAssessment <- function( loc ) {
+  # Load the saved object
+  load( file=file.path("..", "herringsr", "models", loc, "AM2",
+                       paste("aaa_gfiscam", ".RData", sep="")) )
+  # Grab quantiles for q
+  qPars <<- t( model$mcmccalcs$q.quants ) %>%
+    as_tibble( ) %>%
+    rename( qLower=`5%`, qMedian=`50%`, qUpper=`95%` ) %>%
+    mutate( Survey=c("Surface", "Dive") )
+}  # End LoadAssessment function
+
+# Load assessment values (directly!)
+LoadAssessment( loc=region )
 
 # Load reference years
 refYrs <- read_csv( file=refFN, col_types=cols("c", "i", "i") ) %>%
