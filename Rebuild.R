@@ -109,14 +109,21 @@ LoadAssessment <- function( loc ) {
   load( file=file.path("..", "herringsr", "models", loc, "AM2",
                        paste("aaa_gfiscam", ".RData", sep="")) )
   # Grab quantiles for q
-  qPars <<- t( model$mcmccalcs$q.quants ) %>%
+  qPars <- t( model$mcmccalcs$q.quants ) %>%
     as_tibble( ) %>%
     rename( qLower=`5%`, qMedian=`50%`, qUpper=`95%` ) %>%
     mutate( Survey=c("Surface", "Dive") )
+  # Make a list of things to return
+  res <- list( qPars=qPars )
+  # Return the list
+  return( res )
 }  # End LoadAssessment function
 
 # Load assessment values (directly!)
-LoadAssessment( loc=region )
+assessOutput <- LoadAssessment( loc=region )
+
+# Load q from the assessment
+qPars <- assessOutput$qPars
 
 # Load reference years
 refYrs <- read_csv( file=refFN, col_types=cols("c", "i", "i") ) %>%
