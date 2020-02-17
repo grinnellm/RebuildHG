@@ -57,12 +57,15 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c( "HG" )
+region <- c( "WCVI" )
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Region"
+spUnitName <- "StatArea"
 
 ##### Parameters #####
+
+# Apply privacy restrictions (i.e., rule of 3)
+doPrivacy <- TRUE
 
 # Spawn index threshold (tonnes; NA for none)
 siThreshold <- NA  # 15000
@@ -321,7 +324,7 @@ if( spUnitName=="Region" ) {
 }
 
 # Deal with privacy issues for catch data (if any)
-if( !is.null(privCatchDat) ) {
+if( !is.null(privCatchDat) & doPrivacy ) {
   # Identify which catch values are private (TRUE)
   catch <- catch %>%
     full_join( y=privCatchDat, by=namesPriv ) %>%
@@ -333,7 +336,7 @@ if( !is.null(privCatchDat) ) {
 }  # End if no privacy issues (catch)
 
 # Deal with privacy issues for harvest data (if any)
-if( !is.null(privHarvDat) ) {
+if( !is.null(privHarvDat) & doPrivacy ) {
   # Identify which harvest values are private (TRUE)
   harvest <- harvest %>%
     full_join( y=privHarvDat, by=namesPriv ) %>%
@@ -488,7 +491,8 @@ siPlotCatch <- siPlot +
   labs( y="Spawn index and catch (t)" ) +
   scale_y_continuous( labels=comma ) +
   geom_col( data=filter(allYrSp, !PrivCatch), aes(y=Catch), alpha=0.5 ) +
-  geom_point( data=filter(allYrSp, PrivCatch), aes(y=CatchShow), shape=8 ) +
+  geom_point( data=filter(allYrSp, PrivCatch), aes(y=CatchShow), shape=8,
+              na.rm=TRUE ) +
   ggsave( filename=file.path(region, "SpawnIndexCatch.png"), 
           height=min(8.75, n_distinct(allYrSp$SpUnit)*1.9+1), 
           width=figWidth )
@@ -502,14 +506,16 @@ siPlotHarv <- siPlot +
                       sec.axis=sec_axis(~.*rSOK, labels=comma,
                                         name="SOK harvest (t)") ) +
   geom_col( data=filter(allYrSp, !PrivHarvest), aes(y=HarvSOK/rSOK), alpha=0.5 ) +
-  geom_point( data=filter(allYrSp, PrivHarvest), aes(y=HarvSOKShow), shape=8 ) +
+  geom_point( data=filter(allYrSp, PrivHarvest), aes(y=HarvSOKShow), shape=8,
+              na.rm=TRUE ) +
   ggsave( filename=file.path(region, "SpawnIndexHarv.png"), 
           height=min(8.75, n_distinct(allYrSp$SpUnit)*1.9+1), 
           width=figWidth )
 
 # Spawn timing by year and spatial unit
 timingPlot <- ggplot( data=filter(siAllLong, !is.na(Survey)), aes(x=Year) ) +
-  geom_point( aes(y=Date, shape=Survey, colour=Timing), alpha=0.5 ) +
+  geom_point( aes(y=Date, shape=Survey, colour=Timing), alpha=0.5,
+              na.rm=TRUE ) +
   geom_vline( xintercept=newSurvYr-0.5, linetype="dashed", size=0.25 ) +
   scale_x_continuous( breaks=seq(from=1000, to=3000, by=10) ) +
   expand_limits( x=yrRange ) +
