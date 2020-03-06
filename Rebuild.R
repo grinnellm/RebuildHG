@@ -52,7 +52,7 @@ UsePackages <- function( pkgs, locn="https://cran.rstudio.com/" ) {
 # Make packages available
 UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate", 
                     "cowplot", "GGally", "magick", "ggrepel", "readxl", "xtable", 
-                    "viridis", "zoo") )
+                    "viridis", "zoo", "SpawnIndex") )
 
 ##### Controls #####
 
@@ -102,6 +102,8 @@ refYrsAll <- refFN <- file.path("Data", "RefYrs.csv")
 source( file=file.path("..", "HerringFunctions", "Functions.R") )
 
 ##### Data #####
+
+# Load required data
 
 # Message
 cat( "Investigate", region, "by", spUnitName, "\n" )
@@ -168,7 +170,6 @@ LoadSavedObjects <- function( loc ) {
   UpdateCatchData <<- UpdateCatchData  # Function to update catch data
   CalcWeightAtAge <<- CalcWeightAtAge  # Function to calculate weight-at-age
   CalcLengthAtAge <<- CalcLengthAtAge  # Function to calculate length-at-age
-  CalcBiomassSOK <<- CalcBiomassSOK  #  Function to calculate biomass from SOK
   inclTestCatch <<- inclTestCatch  # Include catch from test fishery
   geoProj <<- geoProj  # Text for maps: projection
   areas <<- areas  # Spatial info
@@ -183,7 +184,6 @@ LoadSavedObjects <- function( loc ) {
   ageShow <<- ageShow  # Age to highlight on the x-at-age plots
   yrBreaks <<- yrBreaks  # Years to show in x-axes
   convFac <<- convFac  # Unit conversion factors
-  parsProd <<- parsProd  # Productivity parameters
   ECF <<- ECF  # Egg conversion factor
 }  # End LoadSavedObjects function
 
@@ -199,10 +199,7 @@ aSmall <- areas %>%
 # Calculate SOK harvest
 harvest <- catchRaw %>%
   filter( DisposalCode == 2, Source=="SOK" ) %>%
-  mutate( BiomassSOK=CalcBiomassSOK(SOK=Catch*convFac$lb2kg, 
-                                    eggKelpProp=parsProd$eggKelpProp, 
-                                    eggBrineProp=parsProd$eggBrineProp, 
-                                    eggWt=parsProd$eggWt, ECF=ECF),
+  mutate( BiomassSOK=CalcBiomassSOK(SOK=Catch*convFac$lb2kg),
           HarvSOK=Catch*convFac$lb2kg/1000 ) %>%
   left_join( y=aSmall, by=c("Region", "StatArea", "Section") ) %>%
   select( Year, Region, StatArea, Group, Section, BiomassSOK, HarvSOK )
