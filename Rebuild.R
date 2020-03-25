@@ -57,7 +57,7 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c( "WCVI" )
+region <- c( "HG" )
 
 # Spatial unit: Region, StatArea, Section, or Group
 spUnitName <- "StatArea"
@@ -351,28 +351,28 @@ if( spUnitName %in% c("Region", "StatArea", "Group", "Section") ) {
   # If spatial unit is region
   if( spUnitName == "Region" ) {
     # Make new data frames
-    shapes$spUnitDF <- shapes$regDF %>% rename_( SpUnit=spUnitName ) 
+    shapes$spUnitDF <- shapes$regDF %>% rename( SpUnit=spUnitName ) 
     shapes$spUnitCentDF <- shapes$regCentDF %>% 
-      rename_( SpUnit=spUnitName ) %>%
+      rename( SpUnit=spUnitName ) %>%
       filter( SpUnit == region )
   }  # End if statistical areas
   # If spatial unit is statistical areas
   if( spUnitName == "StatArea" ) {
     # Make new data frames
-    shapes$spUnitDF <- shapes$saDF %>% rename_( SpUnit=spUnitName ) 
-    shapes$spUnitCentDF <- shapes$saCentDF %>% rename_( SpUnit=spUnitName )
+    shapes$spUnitDF <- shapes$saDF %>% rename( SpUnit=spUnitName ) 
+    shapes$spUnitCentDF <- shapes$saCentDF %>% rename( SpUnit=spUnitName )
   }  # End if statistical areas
   # If spatial unit is groups
   if( spUnitName == "Group" ) {
     # Make new data frames
-    shapes$spUnitDF <- shapes$grpDF %>% rename_( SpUnit=spUnitName ) 
-    shapes$spUnitCentDF <- shapes$grpCentDF %>% rename_( SpUnit=spUnitName )
+    shapes$spUnitDF <- shapes$grpDF %>% rename( SpUnit=spUnitName ) 
+    shapes$spUnitCentDF <- shapes$grpCentDF %>% rename( SpUnit=spUnitName )
   }  # End if groups
   # If spatial unit is sections
   if( spUnitName == "Section" ) {
     # Make new data frames
-    shapes$spUnitDF <- shapes$secDF %>% rename_( SpUnit=spUnitName ) 
-    shapes$spUnitCentDF <- shapes$secCentDF %>% rename_( SpUnit=spUnitName )
+    shapes$spUnitDF <- shapes$secDF %>% rename( SpUnit=spUnitName ) 
+    shapes$spUnitCentDF <- shapes$secCentDF %>% rename( SpUnit=spUnitName )
   }  # End if groups
 } else {  # End if spatial units are defined, otherwise
   # Error
@@ -383,23 +383,23 @@ if( spUnitName %in% c("Region", "StatArea", "Group", "Section") ) {
 areas <- areas %>%
   mutate( Section=formatC(Section, width=3, flag="0"),
           StatArea=formatC(StatArea, width=2, flag="0") ) %>%
-  rename_( SpUnit=spUnitName )
+  rename( SpUnit=spUnitName )
 bio <- bio %>%
   mutate( Section=formatC(Section, width=3, flag="0"),
           StatArea=formatC(StatArea, width=2, flag="0") ) %>%
-  rename_( SpUnit=spUnitName )
+  rename( SpUnit=spUnitName )
 catch <- catch %>%
   mutate( Section=formatC(Section, width=3, flag="0"),
           StatArea=formatC(StatArea, width=2, flag="0") ) %>%
-  rename_( SpUnit=spUnitName )
+  rename( SpUnit=spUnitName )
 harvest <- harvest %>%
   mutate( Section=formatC(Section, width=3, flag="0"),
           StatArea=formatC(StatArea, width=2, flag="0") ) %>%
-  rename_( SpUnit=spUnitName )
+  rename( SpUnit=spUnitName )
 siAll <- siAll %>%
   mutate( Section=formatC(Section, width=3, flag="0"),
           StatArea=formatC(StatArea, width=2, flag="0") ) %>%
-  rename_(SpUnit=spUnitName )
+  rename(SpUnit=spUnitName )
 
 ##### Main #####
 
