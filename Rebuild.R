@@ -60,7 +60,7 @@ UsePackages( pkgs=c("tidyverse", "sp", "scales", "ggforce", "lubridate",
 region <- c( "HG" )
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "StatArea"
+spUnitName <- "Group"
 
 ##### Parameters #####
 
