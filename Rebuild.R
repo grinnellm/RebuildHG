@@ -469,6 +469,50 @@ allYrSp <- full_join( x=chYrSp, y=siYrSp, by=c("Year", "SpUnit") ) %>%
 # Determine ratio of max SOK harvest to max spawn index
 rSOK <- max(allYrSp$HarvSOK, na.rm=TRUE) / max(allYrSp$SITotal, na.rm=TRUE)
 
+# Count the number of fish aged by year (and as a proportion) by seine gear:
+# use the 'SampWt' column to fix unrepresentative sampling if identified
+npAgedYear <- bio %>%
+  filter( GearCode == 29 ) %>%
+  select( Year, SpUnit, Age, SampWt ) %>%
+  na.omit( ) %>%
+  group_by( Year, SpUnit, Age ) %>%
+  summarise( Number=SumNA(SampWt) ) %>%
+  mutate( Proportion=Number/SumNA(Number) ) %>%
+  ungroup( ) %>%
+  arrange( Year, SpUnit, Age )
+
+# Calculate weight-at-age by year and area
+weightAge <- bio %>%
+  group_by( SpUnit ) %>%
+  do( CalcWeightAtAge(.) ) %>%
+  ungroup( ) %>%
+  select( Year, SpUnit, Age, Weight ) %>%
+  arrange( Year, SpUnit, Age )
+
+# Calculate running mean weight-at-age by year (if data exist)
+if( exists("weightAge") )
+  muWeightAge <- weightAge %>%
+  group_by( SpUnit, Age ) %>%
+  mutate( muWeight=rollmean(x=Weight, k=nRoll, align="right", na.pad=TRUE) ) %>%
+  ungroup( ) %>%
+  mutate( Age=factor(Age) )
+
+# Calculate length-at-age by year and area
+lengthAge <- bio %>%
+  group_by( SpUnit ) %>%
+  do( CalcLengthAtAge(.) ) %>%
+  ungroup( ) %>%
+  select( Year, SpUnit, Age, Length ) %>%
+  arrange( Year, SpUnit, Age )
+
+# Calculate running mean length-at-age by year (if data exist)
+if( exists("lengthAge") )
+  muLengthAge <- lengthAge %>%
+  group_by( SpUnit, Age ) %>%
+  mutate( muLength=rollmean(x=Length, k=nRoll, align="right", na.pad=TRUE) ) %>%
+  ungroup( ) %>%
+  mutate( Age=factor(Age) )
+
 ##### Figures #####
 
 # Spawn index time series
@@ -522,6 +566,35 @@ timingPlot <- ggplot( data=filter(siAllLong, !is.na(Survey)), aes(x=Year) ) +
   theme( legend.position="top" ) +
   ggsave( filename=file.path(region, "SpawnTiming.png"), 
           height=min(8.75, n_distinct(siAll$SpUnit)*1.9+1), width=figWidth )
+
+# Plot weight-at-age by year (if data exist)
+if( exists("muWeightAge") ) 
+  weightAgePlot <- ggplot( data=muWeightAge ) +
+  geom_line( aes(x=Year, y=muWeight, group=Age, colour=Age), size=1 ) +
+  scale_colour_viridis( guide=guide_legend(nrow=1), discrete=TRUE ) +
+  labs( y="Weight-at-age (g)" ) +
+  scale_x_continuous( breaks=yrBreaks ) +
+  #    coord_cartesian( ylim=wtRange ) +
+  expand_limits( x=yrRange ) +
+  facet_wrap( ~ SpUnit, ncol=1 ) +
+  myTheme +
+  theme( legend.position="top" ) +
+  ggsave( filename=file.path(region, "WeightAge.png"), width=figWidth,
+          height=min(9, n_distinct(npAgedYear$SpUnit)*2+1) )
+
+# Plot length-at-age by year
+if( exists("muLengthAge") )  lengthAgePlot <- ggplot( data=muLengthAge ) +
+  geom_line( aes(x=Year, y=muLength, group=Age, colour=Age), size=1 ) +
+  scale_colour_viridis( guide=guide_legend(nrow=1), discrete=TRUE ) +
+  labs( y="Length-at-age (mm)" ) +
+  scale_x_continuous( breaks=yrBreaks ) +
+  #    coord_cartesian( ylim=lenRange ) +
+  expand_limits( x=yrRange ) +
+  facet_wrap( ~ SpUnit, ncol=1 ) +
+  myTheme +
+  theme( legend.position="top" ) +
+  ggsave( filename=file.path(region, "LengthAge.png"), width=figWidth,
+          height=min(9, n_distinct(npAgedYear$SpUnit)*2+1) )
 
 ##### Tables #####
 
