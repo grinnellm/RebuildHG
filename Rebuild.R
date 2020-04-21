@@ -649,7 +649,7 @@ durationPlot <- ggplot(
   mapping = aes(y = DurationMean, x = Year, group = Survey)
 ) +
   geom_point(mapping = aes(shape = Survey), na.rm = TRUE) +
-  geom_linerange(mapping = aes(ymin = Lower, ymax = Upper)) +
+  # geom_errorbar(mapping = aes(ymin = Lower, ymax = Upper), na.rm = TRUE) +
   geom_line(na.rm = TRUE) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
