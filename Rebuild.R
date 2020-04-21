@@ -432,6 +432,15 @@ siAllLong <- siAll %>%
   mutate( Survey=factor(Survey, levels=c("Surface", "Dive")),
           Timing=factor(Timing, levels=c("Start", "End")) )
 
+# Spawn duration
+siDuration <- siAll %>%
+  mutate( Duration = End-Start ) %>%
+  group_by(Year, SpUnit) %>%
+  summarise( DurationMean=MeanNA(Duration),
+             DurationVar=var(Duration, na.rm=TRUE),
+             DurationNum=n()) %>%
+  ungroup()
+
 # Aggregate spawn index by year and spatial unit
 siYrSp <- siAll %>%
   group_by( Year, SpUnit ) %>%
@@ -565,6 +574,19 @@ timingPlot <- ggplot( data=filter(siAllLong, !is.na(Survey)), aes(x=Year) ) +
   myTheme +
   theme( legend.position="top" ) +
   ggsave( filename=file.path(region, "SpawnTiming.png"), 
+          height=min(8.75, n_distinct(siAll$SpUnit)*1.9+1), width=figWidth )
+
+# Spawn duration by year and spatial unit
+durationPlot <- ggplot( data=siDuration, mapping=aes(x=Year) ) +
+  geom_line( mapping=aes(y=DurationMean)) +
+  # geom_errorbar(mapping=aes(ymin=DurationMean-DurationVar,
+  #                           ymax=DurationMean+DurationVar)) +
+  scale_x_continuous( breaks=seq(from=1000, to=3000, by=10) ) +
+  expand_limits( x=yrRange ) +
+  labs( y="Duration (days)" ) +
+  facet_grid( SpUnit ~ . ) +
+  myTheme +
+  ggsave( filename=file.path(region, "SpawnDuration.png"), 
           height=min(8.75, n_distinct(siAll$SpUnit)*1.9+1), width=figWidth )
 
 # Plot weight-at-age by year (if data exist)
