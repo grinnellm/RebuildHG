@@ -555,13 +555,13 @@ siPlotHarv <- siPlot +
 
 # Spawn timing by year and spatial unit
 timingPlot <- ggplot( data=filter(siAllLong, !is.na(Survey)), aes(x=Year) ) +
-  geom_point( aes(y=Date, shape=Survey, colour=Timing), alpha=0.5,
+  geom_point( aes(y=Date, shape=Survey), alpha=0.5,
               na.rm=TRUE ) +
   geom_vline( xintercept=newSurvYr-0.5, linetype="dashed", size=0.25 ) +
   scale_x_continuous( breaks=seq(from=1000, to=3000, by=10) ) +
   expand_limits( x=yrRange ) +
   labs( y="Date" ) +
-  facet_grid( SpUnit ~ . ) +
+  facet_grid( SpUnit ~ Timing ) +
   myTheme +
   theme( legend.position="top" ) +
   ggsave( filename=file.path(region, "SpawnTiming.png"), 
