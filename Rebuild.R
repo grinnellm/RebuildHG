@@ -45,8 +45,8 @@ UsePackages <- function(pkgs, locn = "https://cran.rstudio.com/") {
   for (i in 1:length(rPkgs)) {
     # Load required packages using 'library'
     eval(parse(text = paste("suppressPackageStartupMessages(library(", rPkgs[i],
-      "))",
-      sep = ""
+                            "))",
+                            sep = ""
     )))
   } # End i loop over package names
 } # End UsePackages function
@@ -143,7 +143,7 @@ refYrs <- read_csv(file = refFN, col_types = cols("c", "i", "i")) %>%
 # Error if no reference years present
 if (nrow(refYrs) == 0) {
   stop("Specify reference years for biomass threshold (refYrs): ", region,
-    call. = FALSE
+       call. = FALSE
   )
 }
 
@@ -264,7 +264,7 @@ GetSI <- function(allSI, loc, XY) {
       Decade = GetDecade(Year), Area = Length * Width,
       Survey = ifelse(Year < newSurvYr, "Surface", "Dive"),
       YrsSurv = ifelse(Year < newSurvYr, length(yrRange[yrRange < newSurvYr]),
-        length(yrRange[yrRange >= newSurvYr])
+                       length(yrRange[yrRange >= newSurvYr])
       )
     ) %>%
     rowwise() %>%
@@ -470,13 +470,14 @@ siAllLong <- siAll %>%
 # Spawn duration
 siDuration <- siAll %>%
   mutate(Duration = End - Start) %>%
-  group_by(Year, SpUnit) %>%
+  group_by(Year, Survey, SpUnit) %>%
   summarise(
     DurationMean = MeanNA(Duration),
     DurationVar = var(Duration, na.rm = TRUE),
     DurationNum = n()
   ) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(Survey = factor(Survey, levels = c("Surface", "Dive")))
 
 # Aggregate spawn index by year and spatial unit
 siYrSp <- siAll %>%
@@ -605,8 +606,8 @@ siPlotHarv <- siPlot +
   scale_y_continuous(
     labels = comma,
     sec.axis = sec_axis(~ . * rSOK,
-      labels = comma,
-      name = "SOK harvest (t)"
+                        labels = comma,
+                        name = "SOK harvest (t)"
     )
   ) +
   geom_col(data = filter(allYrSp, !PrivHarvest), aes(y = HarvSOK / rSOK), alpha = 0.5) +
@@ -623,8 +624,8 @@ siPlotHarv <- siPlot +
 # Spawn timing by year and spatial unit
 timingPlot <- ggplot(data = filter(siAllLong, !is.na(Survey)), aes(x = Year)) +
   geom_point(aes(y = Date, shape = Survey),
-    alpha = 0.5,
-    na.rm = TRUE
+             alpha = 0.5,
+             na.rm = TRUE
   ) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
@@ -639,15 +640,19 @@ timingPlot <- ggplot(data = filter(siAllLong, !is.na(Survey)), aes(x = Year)) +
   )
 
 # Spawn duration by year and spatial unit
-durationPlot <- ggplot(data = siDuration, mapping = aes(x = Year)) +
-  geom_line(mapping = aes(y = DurationMean)) +
+durationPlot <- ggplot(data = siDuration,
+                       mapping = aes(x = Year, group = Survey)) +
+  geom_point(mapping = aes(y = DurationMean, shape = Survey), na.rm=TRUE) +
+  geom_line(mapping = aes(y = DurationMean), na.rm = TRUE) +
   # geom_errorbar(mapping=aes(ymin=DurationMean-DurationVar,
   #                           ymax=DurationMean+DurationVar)) +
+  geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
   expand_limits(x = yrRange) +
   labs(y = "Duration (days)") +
   facet_grid(SpUnit ~ .) +
   myTheme +
+  theme(legend.position = "top") +
   ggsave(
     filename = file.path(region, "SpawnDuration.png"),
     height = min(8.75, n_distinct(siAll$SpUnit) * 1.9 + 1), width = figWidth
@@ -656,7 +661,8 @@ durationPlot <- ggplot(data = siDuration, mapping = aes(x = Year)) +
 # Plot weight-at-age by year (if data exist)
 if (exists("muWeightAge")) {
   weightAgePlot <- ggplot(data = muWeightAge) +
-    geom_line(aes(x = Year, y = muWeight, group = Age, colour = Age), size = 1) +
+    geom_line(aes(x = Year, y = muWeight, group = Age, colour = Age), size = 1,
+              na.rm = TRUE) +
     scale_colour_viridis(guide = guide_legend(nrow = 1), discrete = TRUE) +
     labs(y = "Weight-at-age (g)") +
     scale_x_continuous(breaks = yrBreaks) +
@@ -674,7 +680,8 @@ if (exists("muWeightAge")) {
 # Plot length-at-age by year
 if (exists("muLengthAge")) {
   lengthAgePlot <- ggplot(data = muLengthAge) +
-    geom_line(aes(x = Year, y = muLength, group = Age, colour = Age), size = 1) +
+    geom_line(aes(x = Year, y = muLength, group = Age, colour = Age), size = 1,
+              na.rm = TRUE) +
     scale_colour_viridis(guide = guide_legend(nrow = 1), discrete = TRUE) +
     labs(y = "Length-at-age (mm)") +
     scale_x_continuous(breaks = yrBreaks) +
