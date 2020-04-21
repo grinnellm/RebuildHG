@@ -469,7 +469,8 @@ siAllLong <- siAll %>%
 
 # Spawn duration
 siDuration <- siAll %>%
-  mutate(Duration = End - Start) %>%
+  # Add 1 so that that spawns that start and end same day are 1 day long
+  mutate(Duration = End - Start + 1) %>%
   group_by(Year, Survey, SpUnit) %>%
   summarise(
     DurationMean = MeanNA(Duration),
@@ -653,8 +654,8 @@ durationPlot <- ggplot(
   geom_line(na.rm = TRUE) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
-  expand_limits(x = yrRange) +
-  labs(y = "Duration (days)") +
+  expand_limits(x = yrRange, y = 0) +
+  labs(y = "Mean duration (days)") +
   facet_grid(SpUnit ~ .) +
   myTheme +
   theme(legend.position = "top") +
