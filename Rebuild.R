@@ -687,19 +687,20 @@ numSpawnPlot <- ggplot(data = siAll, mapping = aes(x = Year)) +
     height = min(8.75, n_distinct(siAll$SpUnit) * 1.9 + 1), width = figWidth
   )
 
-# Spawn index by year and spatial unit
-siPlot <- ggplot(data = siAll, mapping = aes(y = SITotal, x = Year)) +
+# Spawn index for spawn number by year and spatial unit 
+siNumPlot <- ggplot(data = siAll, mapping = aes(y = SITotal, x = Year)) +
   geom_point(mapping = aes(shape = Survey), alpha = 0.5, na.rm = TRUE) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
   scale_y_continuous(labels = comma) +
+  # scale_y_log10(labels = comma) +
   expand_limits(x = yrRange, y = 0) +
   labs(y = "Spawn index (t)") +
   facet_grid(SpUnit ~ .) +
   myTheme +
   theme(legend.position = "top") +
   ggsave(
-    filename = file.path(region, "SpawnIndex.png"),
+    filename = file.path(region, "SpawnIndexNum.png"),
     height = min(8.75, n_distinct(siAll$SpUnit) * 1.9 + 1), width = figWidth
   )
 
