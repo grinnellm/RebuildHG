@@ -305,11 +305,13 @@ siAll <- GetSI(allSI = spawnRaw, loc = region, XY = transectXY)
 
 # Check for weird durations
 if( any(siAll$Duration > 20) | any(siAll$Duration < 0) ) {
+  # Count how many
+  oddDuration <- c(which(siAll$Duration > 20), which(siAll$Duration < 0))
   # Warning
-  warning("Set duration to NA.", call. = FALSE)
+  cat("Set", length(oddDuration), "duration(s) to NA\n")
   # Set to NA
   siAll <- siAll %>%
-    mutate( Duration = ifelse(Duration > 20 | Duration < 0, NA, Duration))
+    mutate(Duration = ifelse(Duration %in% 0:20, Duration, NA))
 }
 
 ##### Privacy #####
