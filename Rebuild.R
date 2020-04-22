@@ -261,6 +261,7 @@ GetSI <- function(allSI, loc, XY) {
   raw <- allSI %>%
     replace_na(list(Group = "Other")) %>%
     mutate(
+      Duration = as.numeric(End - Start + 1),
       Decade = GetDecade(Year), Area = Length * Width,
       Survey = ifelse(Year < newSurvYr, "Surface", "Dive"),
       YrsSurv = ifelse(Year < newSurvYr, length(yrRange[yrRange < newSurvYr]),
@@ -467,22 +468,22 @@ siAllLong <- siAll %>%
     Timing = factor(Timing, levels = c("Start", "End"))
   )
 
-# Spawn duration
-siDuration <- siAll %>%
-  # Add 1 so that that spawns that start and end same day are 1 day long
-  mutate(Duration = End - Start + 1) %>%
-  group_by(Year, Survey, SpUnit) %>%
-  summarise(
-    DurationMean = MeanNA(Duration),
-    DurationSD = sd(Duration, na.rm = TRUE),
-    DurationNum = n()
-  ) %>%
-  ungroup() %>%
-  mutate(
-    Lower = DurationMean - DurationSD,
-    Upper = DurationMean + DurationSD,
-    Survey = factor(Survey, levels = c("Surface", "Dive"))
-  )
+# # Spawn duration
+# siDuration <- siAll %>%
+#   # Add 1 so that that spawns that start and end same day are 1 day long
+#   mutate(Duration = End - Start + 1) %>%
+#   group_by(Year, Survey, SpUnit) %>%
+#   summarise(
+#     DurationMean = MeanNA(Duration),
+#     DurationSD = sd(Duration, na.rm = TRUE),
+#     DurationNum = n()
+#   ) %>%
+#   ungroup() %>%
+#   mutate(
+#     Lower = DurationMean - DurationSD,
+#     Upper = DurationMean + DurationSD,
+#     Survey = factor(Survey, levels = c("Surface", "Dive"))
+#   )
 
 # Aggregate spawn index by year and spatial unit
 siYrSp <- siAll %>%
@@ -645,17 +646,13 @@ timingPlot <- ggplot(data = filter(siAllLong, !is.na(Survey)), aes(x = Year)) +
   )
 
 # Spawn duration by year and spatial unit
-durationPlot <- ggplot(
-  data = siDuration,
-  mapping = aes(y = DurationMean, x = Year, group = Survey)
-) +
+durationPlot <- ggplot(data = siAll, mapping = aes(y = Duration, x = Year)) +
   geom_point(mapping = aes(shape = Survey), na.rm = TRUE) +
-  geom_errorbar(mapping = aes(ymin = Lower, ymax = Upper), na.rm = TRUE) +
-  geom_line(na.rm = TRUE) +
+  # geom_boxplot(mapping = aes(group=Year), na.rm = TRUE) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
   expand_limits(x = yrRange, y = 0) +
-  labs(y = "Mean duration (days)") +
+  labs(y = "Duration (days)") +
   facet_grid(SpUnit ~ .) +
   myTheme +
   theme(legend.position = "top") +
