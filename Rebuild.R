@@ -312,7 +312,7 @@ if( any(siAll$Duration > 20) | any(siAll$Duration < 0) ) {
   # Set to NA
   siAll <- siAll %>%
     mutate(Duration = ifelse(Duration %in% 0:20, Duration, NA))
-}
+} # End checking duration
 
 ##### Privacy #####
 
@@ -669,6 +669,21 @@ durationPlot <- ggplot(data = siAll, mapping = aes(y = Duration, x = Year)) +
   theme(legend.position = "top") +
   ggsave(
     filename = file.path(region, "SpawnDuration.png"),
+    height = min(8.75, n_distinct(siAll$SpUnit) * 1.9 + 1), width = figWidth
+  )
+
+# Number of spawns by year and spatial unit
+numSpawnPlot <- ggplot(data = siAll, mapping = aes(x = Year)) +
+  geom_bar() + 
+  geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
+  scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
+  expand_limits(x = yrRange, y = 0) +
+  labs(y = "Number of spawns") +
+  facet_grid(SpUnit ~ .) +
+  myTheme +
+  theme(legend.position = "top") +
+  ggsave(
+    filename = file.path(region, "SpawnNumber.png"),
     height = min(8.75, n_distinct(siAll$SpUnit) * 1.9 + 1), width = figWidth
   )
 
