@@ -303,6 +303,15 @@ GetSI <- function(allSI, loc, XY) {
 # Get spawn index
 siAll <- GetSI(allSI = spawnRaw, loc = region, XY = transectXY)
 
+# Check for weird durations
+if( any(siAll$Duration > 20) | any(siAll$Duration < 0) ) {
+  # Warning
+  warning("Set duration to NA.", call. = FALSE)
+  # Set to NA
+  siAll <- siAll %>%
+    mutate( Duration = ifelse(Duration > 20 | Duration < 0, NA, Duration))
+}
+
 ##### Privacy #####
 
 # Load catch and harvest privacy info
