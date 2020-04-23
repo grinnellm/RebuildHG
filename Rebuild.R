@@ -262,7 +262,7 @@ GetSI <- function(allSI, loc, XY) {
     replace_na(list(Group = "Other")) %>%
     mutate(
       Duration = as.numeric(End - Start + 1),
-      Decade = GetDecade(Year), Area = Length * Width,
+      Decade = GetDecade(Year), Area = Length * Width, Week = week(Start),
       Survey = ifelse(Year < newSurvYr, "Surface", "Dive"),
       YrsSurv = ifelse(Year < newSurvYr, length(yrRange[yrRange < newSurvYr]),
         length(yrRange[yrRange >= newSurvYr])
@@ -584,6 +584,15 @@ if (exists("lengthAge")) {
     mutate(Age = factor(Age))
 }
 
+# Calculate proporiton of total spawn by week and spatial unit
+propWeekSI <- siAll %>%
+  filter(!is.na(Week)) %>%
+  group_by(SpUnit, Week) %>%
+  summarise(SITotal = SumNA(SITotal)) %>%
+  group_by(SpUnit) %>%
+  mutate(SIProp = SITotal/SumNA(SITotal)) %>%
+  ungroup()
+
 ##### Figures #####
 
 # Spawn index time series
@@ -745,6 +754,15 @@ if (exists("muLengthAge")) {
       height = min(9, n_distinct(npAgedYear$SpUnit) * 2 + 1)
     )
 }
+
+# Plot proportion of spawn by week
+propWeekSIPlot <- ggplot(data = propWeekSI, mapping=aes(x=Week, y=SIProp)) +
+  geom_bar(stat = "identity") +
+  facet_wrap(~SpUnit, ncol = 1) +
+  ggsave(
+    filename = file.path(region, "PropWeekSI.png"), width = figWidth,
+    height = min(9, n_distinct(npAgedYear$SpUnit) * 2 + 1)
+  )
 
 ##### Tables #####
 
