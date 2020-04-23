@@ -631,9 +631,7 @@ siPlotHarv <- siPlot +
   labs(y = "Spawn index (t)") +
   scale_y_continuous(
     labels = comma,
-    sec.axis = sec_axis(~ . * rSOK,
-      labels = comma,
-      name = "SOK harvest (t)"
+    sec.axis = sec_axis(~ . * rSOK, labels = comma, name = "SOK harvest (t)"
     )
   ) +
   geom_col(data = filter(allYrSp, !PrivHarvest), aes(y = HarvSOK / rSOK), alpha = 0.5) +
@@ -717,15 +715,14 @@ siNumPlot <- ggplot(data = siAll, mapping = aes(y = SITotal, x = Year)) +
 if (exists("muWeightAge")) {
   weightAgePlot <- ggplot(data = muWeightAge) +
     geom_line(aes(x = Year, y = muWeight, group = Age, colour = Age),
-      size = 1,
-      na.rm = TRUE
+      size = 1, na.rm = TRUE
     ) +
     scale_colour_viridis(guide = guide_legend(nrow = 1), discrete = TRUE) +
     labs(y = "Weight-at-age (g)") +
     scale_x_continuous(breaks = yrBreaks) +
     #    coord_cartesian( ylim=wtRange ) +
     expand_limits(x = yrRange) +
-    facet_wrap(~SpUnit, ncol = 1) +
+    facet_grid(SpUnit ~ .) +
     myTheme +
     theme(legend.position = "top") +
     ggsave(
@@ -738,15 +735,14 @@ if (exists("muWeightAge")) {
 if (exists("muLengthAge")) {
   lengthAgePlot <- ggplot(data = muLengthAge) +
     geom_line(aes(x = Year, y = muLength, group = Age, colour = Age),
-      size = 1,
-      na.rm = TRUE
+      size = 1, na.rm = TRUE
     ) +
     scale_colour_viridis(guide = guide_legend(nrow = 1), discrete = TRUE) +
     labs(y = "Length-at-age (mm)") +
     scale_x_continuous(breaks = yrBreaks) +
     #    coord_cartesian( ylim=lenRange ) +
     expand_limits(x = yrRange) +
-    facet_wrap(~SpUnit, ncol = 1) +
+    facet_grid(SpUnit ~ .) +
     myTheme +
     theme(legend.position = "top") +
     ggsave(
@@ -758,7 +754,10 @@ if (exists("muLengthAge")) {
 # Plot proportion of spawn by week
 propWeekSIPlot <- ggplot(data = propWeekSI, mapping=aes(x=Week, y=SIProp)) +
   geom_bar(stat = "identity") +
-  facet_wrap(~SpUnit, ncol = 1) +
+  labs(x="Week of the year", y = "Proportion of spawn index") +
+  scale_x_continuous(breaks = seq(from = 0, to = 50, by = 5)) +
+  facet_grid(SpUnit ~ .) +
+  myTheme +
   ggsave(
     filename = file.path(region, "PropWeekSI.png"), width = figWidth,
     height = min(9, n_distinct(npAgedYear$SpUnit) * 2 + 1)
