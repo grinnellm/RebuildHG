@@ -304,7 +304,7 @@ GetSI <- function(allSI, loc, XY) {
 siAll <- GetSI(allSI = spawnRaw, loc = region, XY = transectXY)
 
 # Check for weird durations
-if( any(siAll$Duration > 20) | any(siAll$Duration < 0) ) {
+if (any(siAll$Duration > 20) | any(siAll$Duration < 0)) {
   # Count how many
   oddDuration <- c(which(siAll$Duration > 20), which(siAll$Duration < 0))
   # Warning
@@ -590,7 +590,7 @@ propWeekSI <- siAll %>%
   group_by(SpUnit, Week) %>%
   summarise(SITotal = SumNA(SITotal)) %>%
   group_by(SpUnit) %>%
-  mutate(SIProp = SITotal/SumNA(SITotal)) %>%
+  mutate(SIProp = SITotal / SumNA(SITotal)) %>%
   ungroup()
 
 ##### Figures #####
@@ -631,8 +631,7 @@ siPlotHarv <- siPlot +
   labs(y = "Spawn index (t)") +
   scale_y_continuous(
     labels = comma,
-    sec.axis = sec_axis(~ . * rSOK, labels = comma, name = "SOK harvest (t)"
-    )
+    sec.axis = sec_axis(~ . * rSOK, labels = comma, name = "SOK harvest (t)")
   ) +
   geom_col(data = filter(allYrSp, !PrivHarvest), aes(y = HarvSOK / rSOK), alpha = 0.5) +
   geom_point(
@@ -681,7 +680,7 @@ durationPlot <- ggplot(data = siAll, mapping = aes(y = Duration, x = Year)) +
 
 # Number of spawns by year and spatial unit
 numSpawnPlot <- ggplot(data = siAll, mapping = aes(x = Year)) +
-  geom_bar() + 
+  geom_bar() +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
   expand_limits(x = yrRange, y = 0) +
@@ -694,7 +693,7 @@ numSpawnPlot <- ggplot(data = siAll, mapping = aes(x = Year)) +
     height = min(8.75, n_distinct(siAll$SpUnit) * 1.9 + 1), width = figWidth
   )
 
-# Spawn index for spawn number by year and spatial unit 
+# Spawn index for spawn number by year and spatial unit
 siNumPlot <- ggplot(data = siAll, mapping = aes(y = SITotal, x = Year)) +
   geom_point(mapping = aes(shape = Survey), alpha = 0.5, na.rm = TRUE) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
@@ -752,9 +751,11 @@ if (exists("muLengthAge")) {
 }
 
 # Plot proportion of spawn by week
-propWeekSIPlot <- ggplot(data = propWeekSI, mapping=aes(x=Week, y=SIProp)) +
+propWeekSIPlot <- ggplot(
+  data = propWeekSI, mapping = aes(x = Week, y = SIProp, group = Week)
+) +
   geom_bar(stat = "identity") +
-  labs(x="Week of the year", y = "Proportion of spawn index") +
+  labs(x = "Week of the year", y = "Proportion of spawn index") +
   scale_x_continuous(breaks = seq(from = 0, to = 50, by = 5)) +
   facet_grid(SpUnit ~ .) +
   myTheme +
