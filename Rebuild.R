@@ -131,7 +131,7 @@ LoadAssessment <- function(loc) {
 } # End LoadAssessment function
 
 # If there is an assessment
-if(region != "All") {
+if(region %in% c("HG", "PRD", "CC", "SoG", "WCVI")) {
   # Load assessment values (directly!)
   assessOutput <- LoadAssessment(loc = region)
   # Load q from the assessment
