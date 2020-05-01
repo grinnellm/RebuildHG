@@ -45,8 +45,8 @@ UsePackages <- function(pkgs, locn = "https://cran.rstudio.com/") {
   for (i in 1:length(rPkgs)) {
     # Load required packages using 'library'
     eval(parse(text = paste("suppressPackageStartupMessages(library(", rPkgs[i],
-                            "))",
-                            sep = ""
+      "))",
+      sep = ""
     )))
   } # End i loop over package names
 } # End UsePackages function
@@ -131,7 +131,7 @@ LoadAssessment <- function(loc) {
 } # End LoadAssessment function
 
 # If there is an assessment
-if(region %in% c("HG", "PRD", "CC", "SoG", "WCVI")) {
+if (region %in% c("HG", "PRD", "CC", "SoG", "WCVI")) {
   # Load assessment values (directly!)
   assessOutput <- LoadAssessment(loc = region)
   # Load q from the assessment
@@ -139,8 +139,8 @@ if(region %in% c("HG", "PRD", "CC", "SoG", "WCVI")) {
 } else { # End if loading assesment output, otherwise
   # Fill q = 1
   qPars <- tibble(
-    qLower=c(1, 1), qMedian=c(1, 1), qUpper=c(1, 1),
-    Survey=c("Surface", "Dive")
+    qLower = c(1, 1), qMedian = c(1, 1), qUpper = c(1, 1),
+    Survey = c("Surface", "Dive")
   )
 }
 
@@ -151,7 +151,7 @@ refYrs <- read_csv(file = refFN, col_types = cols("c", "i", "i")) %>%
 # Error if no reference years present
 if (nrow(refYrs) == 0) {
   stop("Specify reference years for biomass threshold (refYrs): ", region,
-       call. = FALSE
+    call. = FALSE
   )
 }
 
@@ -273,7 +273,7 @@ GetSI <- function(allSI, loc, XY) {
       Decade = GetDecade(Year), Area = Length * Width, Week = week(Start),
       Survey = ifelse(Year < newSurvYr, "Surface", "Dive"),
       YrsSurv = ifelse(Year < newSurvYr, length(yrRange[yrRange < newSurvYr]),
-                       length(yrRange[yrRange >= newSurvYr])
+        length(yrRange[yrRange >= newSurvYr])
       )
     ) %>%
     rowwise() %>%
@@ -655,8 +655,8 @@ siPlotHarv <- siPlot +
 # Spawn timing by year and spatial unit
 timingPlot <- ggplot(data = filter(siAllLong, !is.na(Survey)), aes(x = Year)) +
   geom_point(aes(y = Date, shape = Survey),
-             alpha = 0.5,
-             na.rm = TRUE
+    alpha = 0.5,
+    na.rm = TRUE
   ) +
   geom_vline(xintercept = newSurvYr - 0.5, linetype = "dashed", size = 0.25) +
   scale_x_continuous(breaks = seq(from = 1000, to = 3000, by = 10)) +
@@ -722,7 +722,7 @@ siNumPlot <- ggplot(data = siAll, mapping = aes(y = SITotal, x = Year)) +
 if (exists("muWeightAge")) {
   weightAgePlot <- ggplot(data = muWeightAge) +
     geom_line(aes(x = Year, y = muWeight, group = Age, colour = Age),
-              size = 1, na.rm = TRUE
+      size = 1, na.rm = TRUE
     ) +
     scale_colour_viridis(guide = guide_legend(nrow = 1), discrete = TRUE) +
     labs(y = "Weight-at-age (g)") +
@@ -742,7 +742,7 @@ if (exists("muWeightAge")) {
 if (exists("muLengthAge")) {
   lengthAgePlot <- ggplot(data = muLengthAge) +
     geom_line(aes(x = Year, y = muLength, group = Age, colour = Age),
-              size = 1, na.rm = TRUE
+      size = 1, na.rm = TRUE
     ) +
     scale_colour_viridis(guide = guide_legend(nrow = 1), discrete = TRUE) +
     labs(y = "Length-at-age (mm)") +
