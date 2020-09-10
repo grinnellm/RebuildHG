@@ -61,10 +61,10 @@ UsePackages(pkgs = c(
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c("HG")
+region <- c("CC")
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Group"
+spUnitName <- "StatArea"
 
 ##### Parameters #####
 
@@ -335,9 +335,17 @@ LoadPrivacy <- function(sp, sc, fn) {
   # If there is a privacy file
   if (privFN %in% list.files(privPath)) {
     # Load the privacy data
-    privDat <- read_csv(file = file.path(privPath, privFN), col_types = cols()) %>%
+    privDat <- read_csv(
+      file = file.path(privPath, privFN), col_types = cols()
+    ) %>%
       mutate(Private = TRUE) %>%
       rename(!!privName := Private) # Weird but works..
+    if ("StatArea" %in% names(privDat))
+      privDat <- privDat %>%
+        mutate(StatArea = formatC(StatArea, width = 2, flag = "0"))
+    if ("Section" %in% names(privDat))
+      privDat <- privDat %>%
+        mutate(Section = formatC(Section, width = 3, flag = "0"))
     # Print a message
     cat("Loading", fn, "privacy data\n")
   } else { # End if there is privacy data, otherwise
@@ -422,7 +430,7 @@ if (spUnitName %in% c("Region", "StatArea", "Group", "Section")) {
   stop("Variable spUnitName = ", spUnitName, " not defined", call. = FALSE)
 } # End if spatial units are not defined
 
-# Rename variables to set spatial resolution
+# Rename variables to set spatiaal resolution
 areas <- areas %>%
   mutate(
     Section = formatC(Section, width = 3, flag = "0"),
