@@ -61,10 +61,10 @@ UsePackages(pkgs = c(
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c("CC")
+region <- c("SoG")
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "StatArea"
+spUnitName <- "Group"
 
 ##### Parameters #####
 
