@@ -58,13 +58,16 @@ UsePackages(pkgs = c(
   "viridis", "zoo", "SpawnIndex"
 ))
 
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c("SoG")
+region <- c("All")
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Group"
+spUnitName <- "Section"
 
 ##### Parameters #####
 
@@ -312,7 +315,8 @@ GetSI <- function(allSI, loc, XY) {
 siAll <- GetSI(allSI = spawnRaw, loc = region, XY = transectXY)
 
 # Check for weird durations
-if (any(siAll$Duration > 20) | any(siAll$Duration < 0)) {
+if (any(siAll$Duration > 20, na.rm = TRUE) | 
+    any(siAll$Duration < 0, na.rm = TRUE)) {
   # Count how many
   oddDuration <- c(which(siAll$Duration > 20), which(siAll$Duration < 0))
   # Warning
@@ -340,12 +344,12 @@ LoadPrivacy <- function(sp, sc, fn) {
     ) %>%
       mutate(Private = TRUE) %>%
       rename(!!privName := Private) # Weird but works..
-    if ("StatArea" %in% names(privDat))
-      privDat <- privDat %>%
-        mutate(StatArea = formatC(StatArea, width = 2, flag = "0"))
-    if ("Section" %in% names(privDat))
-      privDat <- privDat %>%
-        mutate(Section = formatC(Section, width = 3, flag = "0"))
+    # if ("StatArea" %in% names(privDat))
+    #   privDat <- privDat %>%
+    #     mutate(StatArea = formatC(StatArea, width = 2, flag = "0"))
+    # if ("Section" %in% names(privDat))
+    #   privDat <- privDat %>%
+    #     mutate(Section = formatC(Section, width = 3, flag = "0"))
     # Print a message
     cat("Loading", fn, "privacy data\n")
   } else { # End if there is privacy data, otherwise
@@ -524,7 +528,7 @@ siYrSp <- siAll %>%
     SITotal = SumNA(SITotal),
     DateFirst = MinNA(Start, End),
     DateLast = MaxNA(Start, End),
-    DateDiff = DateLast - DateFirst,
+    DateDiff = as.Date(DateLast) - as.Date(DateFirst),
     Survey = unique(Survey)
   ) %>%
   group_by(SpUnit) %>%
@@ -547,7 +551,9 @@ allYrSp <- full_join(x = chYrSp, y = siYrSp, by = c("Year", "SpUnit")) %>%
     Survey = factor(Survey, levels = c("Surface", "Dive")),
     HarvestLower = Catch / (Catch + BiomassUpper),
     HarvestMedian = Catch / (Catch + BiomassMedian),
-    HarvestUpper = Catch / (Catch + BiomassLower)
+    HarvestUpper = Catch / (Catch + BiomassLower),
+    CatchIndex = ifelse(is.na(CatchShow), 0, CatchShow) + 
+      ifelse(is.na(SITotal), 0, SITotal)
   ) %>%
   filter(!is.na(SpUnit))
 
@@ -660,6 +666,21 @@ siPlotHarv <- siPlot +
     width = figWidth
   )
 
+# Spawn index + catch
+sumCatchSIPlot <- siPlot +
+  geom_point(aes(y = SITotal, shape = Survey), na.rm = TRUE) +
+  geom_line(aes(y = CatchIndex)) +
+  scale_y_continuous(labels = comma) +
+  geom_col(data = filter(allYrSp, !PrivCatch), aes(y = Catch), alpha = 0.5) +
+  geom_point(
+    data = filter(allYrSp, PrivCatch), aes(y = CatchShow), shape = 8,
+    na.rm = TRUE
+  ) +
+  ggsave(
+    filename = file.path(region, "SpawnCatchSum.png"),
+    height = min(8.75, n_distinct(allYrSp$SpUnit) * 1.9 + 1),
+    width = figWidth
+  )
 # Spawn timing by year and spatial unit
 timingPlot <- ggplot(data = filter(siAllLong, !is.na(Survey)), aes(x = Year)) +
   geom_point(aes(y = Date, shape = Survey),
