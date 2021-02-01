@@ -315,8 +315,8 @@ GetSI <- function(allSI, loc, XY) {
 siAll <- GetSI(allSI = spawnRaw, loc = region, XY = transectXY)
 
 # Check for weird durations
-if (any(siAll$Duration > 20, na.rm = TRUE) | 
-    any(siAll$Duration < 0, na.rm = TRUE)) {
+if (any(siAll$Duration > 20, na.rm = TRUE) |
+  any(siAll$Duration < 0, na.rm = TRUE)) {
   # Count how many
   oddDuration <- c(which(siAll$Duration > 20), which(siAll$Duration < 0))
   # Warning
@@ -552,7 +552,7 @@ allYrSp <- full_join(x = chYrSp, y = siYrSp, by = c("Year", "SpUnit")) %>%
     HarvestLower = Catch / (Catch + BiomassUpper),
     HarvestMedian = Catch / (Catch + BiomassMedian),
     HarvestUpper = Catch / (Catch + BiomassLower),
-    CatchIndex = ifelse(is.na(CatchShow), 0, CatchShow) + 
+    CatchIndex = ifelse(is.na(CatchShow), 0, CatchShow) +
       ifelse(is.na(SITotal), 0, SITotal)
   ) %>%
   filter(!is.na(SpUnit))
@@ -572,6 +572,15 @@ npAgedYear <- bio %>%
   ungroup() %>%
   arrange(Year, SpUnit, Age)
 
+# Add new time variable
+bio <- bio %>%
+  mutate(
+    Time = NA,
+    Time = ifelse(Year %in% 1951:1969, "1951 to 1969", Time),
+    Time = ifelse(Year %in% 1970:1989, "1970 to 1989", Time),
+    Time = ifelse(Year %in% 1990:2020, "1990 to 2020", Time)
+  )
+
 # Calculate weight-at-age by year and area
 weightAge <- bio %>%
   group_by(SpUnit) %>%
@@ -584,7 +593,10 @@ weightAge <- bio %>%
 if (exists("weightAge")) {
   muWeightAge <- weightAge %>%
     group_by(SpUnit, Age) %>%
-    mutate(muWeight = rollmean(x = Weight, k = nRoll, align = "right", na.pad = TRUE)) %>%
+    mutate(muWeight = rollmean(
+      x = Weight, k = nRoll, align = "right",
+      na.pad = TRUE
+    )) %>%
     ungroup() %>%
     mutate(Age = factor(Age))
 }
@@ -601,7 +613,10 @@ lengthAge <- bio %>%
 if (exists("lengthAge")) {
   muLengthAge <- lengthAge %>%
     group_by(SpUnit, Age) %>%
-    mutate(muLength = rollmean(x = Length, k = nRoll, align = "right", na.pad = TRUE)) %>%
+    mutate(muLength = rollmean(
+      x = Length, k = nRoll, align = "right",
+      na.pad = TRUE
+    )) %>%
     ungroup() %>%
     mutate(Age = factor(Age))
 }
@@ -767,6 +782,26 @@ if (exists("muWeightAge")) {
     )
 }
 
+# Weight-at-age by Time and SpUnit
+weightAgeTime <- ggplot(
+  data = bio,
+  mapping = aes(
+    x = Age, y = Weight, fill = SpUnit,
+    group = interaction(Age, SpUnit)
+  )
+) +
+  geom_boxplot(outlier.colour = "black", size = 0.25) +
+  labs(y = "Weight (g)", fill = "Section") +
+  scale_x_continuous(breaks = pretty_breaks()) +
+  scale_fill_viridis(discrete = TRUE, alpha = 0.5) +
+  facet_grid(. ~ Time) +
+  myTheme +
+  theme(legend.position = "top") +
+  ggsave(
+    filename = file.path(region, "WeightAgeTime.png"), width = figWidth,
+    height = figWidth * 0.67
+  )
+
 # Plot length-at-age by year
 if (exists("muLengthAge")) {
   lengthAgePlot <- ggplot(data = muLengthAge) +
@@ -786,6 +821,26 @@ if (exists("muLengthAge")) {
       height = min(9, n_distinct(npAgedYear$SpUnit) * 2 + 1)
     )
 }
+
+# Length-at-age by Time and SpUnit
+lengthAgeTime <- ggplot(
+  data = bio,
+  mapping = aes(
+    x = Age, y = Length, fill = SpUnit,
+    group = interaction(Age, SpUnit)
+  )
+) +
+  geom_boxplot(outlier.colour = "black", size = 0.25) +
+  labs(y = "Length (mm)", fill = "Section") +
+  scale_x_continuous(breaks = pretty_breaks()) +
+  scale_fill_viridis(discrete = TRUE, alpha = 0.5) +
+  facet_grid(. ~ Time) +
+  myTheme +
+  theme(legend.position = "top") +
+  ggsave(
+    filename = file.path(region, "LengthAgeTime.png"), width = figWidth,
+    height = figWidth * 0.67
+  )
 
 # Plot proportion of spawn by week
 propWeekSIPlot <- ggplot(
