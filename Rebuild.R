@@ -64,10 +64,10 @@ options(dplyr.summarise.inform = FALSE)
 ##### Controls #####
 
 # Select region: major (HG, PRD, CC, SoG, WCVI); or minor (A27, A2W)
-region <- c("All")
+region <- c("HG")
 
 # Spatial unit: Region, StatArea, Section, or Group
-spUnitName <- "Section"
+spUnitName <- "Group"
 
 ##### Parameters #####
 
@@ -96,9 +96,6 @@ pDPI <- 320
 
 # File name for dive transect XY
 diveFN <- file.path("Data", "dive_transects_with_lat_long_June2_2017.xlsx")
-
-# File name for q parameters
-qFN <- file.path("Data", "qPars.csv")
 
 # File name for reference years
 refYrsAll <- refFN <- file.path("Data", "RefYrs.csv")
@@ -696,6 +693,40 @@ sumCatchSIPlot <- siPlot +
     height = min(8.75, n_distinct(allYrSp$SpUnit) * 1.9 + 1),
     width = figWidth
   )
+
+# Spawn index plot
+siPlot1 <- siPlot +
+  geom_line(aes(y = SITotal), na.rm = TRUE) +
+  geom_point(aes(y = SITotal, shape = Survey), na.rm = TRUE) +
+  labs(y = "Spawn index (t)") +
+  scale_y_continuous(labels = comma)
+  
+# Biomass plot
+biomPlot1 <- siPlot +
+  geom_ribbon(aes(ymin = BiomassLower, ymax = BiomassUpper), fill = "grey") +
+  geom_line(aes(y = BiomassMedian), na.rm = TRUE) +
+  geom_point(aes(y = BiomassMedian, shape = Survey), size=1 ) +
+  labs(y = "Scaled abundance (t)") +
+  scale_y_continuous(labels = comma)
+
+# Catch plot
+siPlot2 <- siPlot +
+  labs(y = "Catch (t)") +
+  scale_y_continuous(labels = comma) +
+  geom_col(data = filter(allYrSp, !PrivCatch), aes(y = Catch), alpha = 0.5) +
+  geom_point(
+    data = filter(allYrSp, PrivCatch), aes(y = CatchShow), shape = 8,
+    na.rm = TRUE
+  ) 
+
+# Spawn and catch plots
+plot_grid(biomPlot1, siPlot2, align = "hv", ncol = 2, axis = "rlbt") +
+  ggsave(
+    filename = file.path(region, "SpawnIndexCatchCol.png"),
+    height = min(8.75, n_distinct(allYrSp$SpUnit) * 1.9 + 1),
+    width = figWidth
+  )
+
 # Spawn timing by year and spatial unit
 timingPlot <- ggplot(data = filter(siAllLong, !is.na(Survey)), aes(x = Year)) +
   geom_point(aes(y = Date, shape = Survey),
@@ -855,6 +886,22 @@ propWeekSIPlot <- ggplot(
     filename = file.path(region, "PropWeekSI.png"), width = figWidth,
     height = min(9, n_distinct(npAgedYear$SpUnit) * 2 + 1)
   )
+
+# Effective harvest rate by spatial unit
+effHarvPlot <- ggplot( data=allYrSp, aes(x=Year, y=HarvestMedian) ) +
+  geom_ribbon( aes(ymin=HarvestLower, ymax=HarvestUpper), fill="grey" ) +
+  geom_line( ) +
+  geom_point( size=1 ) +
+  geom_vline( xintercept=newSurvYr-0.5, linetype="dashed" ) +
+  annotate( geom="segment", x=intendUYrs, y=intendU, xend=max(yrRange), 
+            yend=intendU, linetype="dashed" ) +
+  scale_x_continuous( breaks=seq(from=1000, to=3000, by=10) ) +
+  labs( y="Effective harvest rate" ) +
+  facet_grid( SpUnit ~ . ) +
+  expand_limits( x=yrRange ) +
+  myTheme +
+  ggsave( filename=file.path(region, "HarvestRate.png"), 
+          height=min(8.75, n_distinct(siAll$SpUnit)*1.9+1), width=figWidth )
 
 ##### Tables #####
 
